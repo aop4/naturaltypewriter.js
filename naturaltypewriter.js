@@ -5,7 +5,7 @@ Andrew Puglionesi
 
 /* Constructor.
    Returns true on success and false on failure. */
-function JSTypeWriter(config) {
+function NaturalTypewriter(config) {
 
 	/*
 	Effectively "private" members
