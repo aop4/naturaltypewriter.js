@@ -4,19 +4,40 @@ A simple native JavaScript library to simulate someone typing in a DOM element. 
 ## Use
 Include in your page `<script src="naturaltypewriter.js"></script>`
 
+### Constructor
 ```
-var writer = new NaturalTypewriter();
-//append the string textToAppend to the element
-writer.append(domElement, textToAppend, msBetweenChars);
-//clear the element of any text and write the string textToAppend into it
-writer.write(domElement, textToAppend, msBetweenChars);
+var writer = new NaturalTypewriter({'interval':msBetweenChars, 'flexibility':variabilityInInterval, 'backtrackProbability':probabilityOfBacktracking});
 ```
-A more specific use case:
+`interval` (required) is the number of milliseconds between the typing of each character.  
+`flexibility` (optional, default 0) determines the numerical range for possible intervals. Use it to simulate variable speed typing: any interval value in the range (interval +/- flexibility) is equally likely to occur. The range is truncated at 0 to prevent negative intervals from occuring.  
+`backTrackProbability` (optional, default 0) is the probability that a given character will be written as a random letter, deleted, and rewritten to simulate human error. Values above 0.05 cause it to look kind of unrealistic/clumsy.  
+Suggested starting points for these paramaters can be found in the use case. They all must be numbers.  
+
+### NaturalTypewriter.append()
+```
+writer.append(domElement, text);
+```
+Appends `text` to `domElement`'s HTML content.  
+`domElement` is the DOM element to append text to. It must be a native DOM element.  
+`text` is the text to write. It must be a string. Newlines (`'\n'`) are escaped as <br> elements and so work as expected. They can be depicted directly with `'\\n'.`  
+
+### NaturalTypewriter.write()
+```
+writer.write(domElement, text);
+```
+Caution: clears any text currently in `domElement` and writes `text` into `domElement`.  
+`domElement` is the DOM element to clear and then write to. It must be a native DOM element.  
+`text` is the text to write. It must be a string. Newlines (`'\n'`) are escaped as <br> elements and so work as expected. They can be depicted directly with `'\\n'`.  
+
+## Example use case  
+
 ```
 //say we have a <p> tag `<p id="img-description"></p>`
+var writer = new NaturalTypewriter({'interval':40, 'flexibility':39, 'backtrackProbability':0.0});
+
 var imageDescription = document.getElementById('img-description');
-var writer = new NaturalTypewriter();
-writer.write(imageDescription, 'This is the best image ever', 200);
+
+writer.append(imageDescription, 'This is the best image ever');
 ```
 
 ## Concurrency
