@@ -6,7 +6,8 @@ Include in your page `<script src="naturaltypewriter.js"></script>`
 
 ### Constructor
 ```
-var writer = new NaturalTypewriter({'interval':msBetweenChars, 'flexibility':variabilityInInterval, 'backtrackProbability':probabilityOfBacktracking});
+var writer = new NaturalTypewriter({'interval':msBetweenChars, 'flexibility':variabilityInInterval,
+'backtrackProbability':probabilityOfBacktracking});
 ```
 `interval` (required) is the number of milliseconds between the typing of each character.  
 `flexibility` (optional, default 0) determines the numerical range for possible intervals. Use it to simulate variable speed typing: any interval value in the range (interval +/- flexibility) is equally likely to occur. The range is truncated at 0 to prevent negative intervals from occuring.  
@@ -19,7 +20,7 @@ writer.append(domElement, text);
 ```
 Appends `text` to `domElement`'s HTML content.  
 `domElement` is the DOM element to append text to. It must be a native DOM element.  
-`text` is the text to write. It must be a string. Newlines (`'\n'`) are escaped as <br> elements and so work as expected. They can be depicted directly with `'\\n'.`  
+`text` is the text to write. It must be a string. Newlines (`'\n'`) are escaped as `<br>` elements and so work as expected. They can be depicted directly with `'\\n'.`  
 
 ### NaturalTypewriter.write()
 ```
@@ -27,7 +28,7 @@ writer.write(domElement, text);
 ```
 Caution: clears any text currently in `domElement` and writes `text` into `domElement`.  
 `domElement` is the DOM element to clear and then write to. It must be a native DOM element.  
-`text` is the text to write. It must be a string. Newlines (`'\n'`) are escaped as <br> elements and so work as expected. They can be depicted directly with `'\\n'`.  
+`text` is the text to write. It must be a string. Newlines (`'\n'`) are escaped as `<br>` elements and so work as expected. They can be depicted directly with `'\\n'`.  
 
 ## Example use case  
 
