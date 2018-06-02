@@ -124,14 +124,22 @@ function NaturalTypewriter(config) {
 	if (!checkInterval(loopWaitTime, 'constructor', 'loopWaitTime')) {
 		return false;
 	}
+	var pauseBetweenWords = config.pauseBetweenWords || 0;
+	if (!checkInterval(pauseBetweenWords, 'constructor', 'pauseBetweenWords')) {
+		return false;
+	}
 
-	/* Used when flexibility != 0, i.e., the user wants the typing speed
+	/* If pauseBetweenWords is defined, this returns it. Otherwise it's
+	used when flexibility != 0, i.e., the user wants the typing speed
 	to vary from character to character. A value in the range
 	[-flexibility, flexibility] is added to the object's interval attribute,
 	and the result is returned to give a new interval in the range 
 	[interval +/- flexibility]. If this number is negative, 0 is used
 	as the interval. */
-	var calculateFlexibleInterval = function() {
+	var calculateFlexibleInterval = function(character) {
+		if (pauseBetweenWords && character === ' ') {
+			return pauseBetweenWords;
+		}
 		//randomly choose a sign (positive or negative) for the value to add to interval
 		var timeDeltaSign = (Math.random() < 0.5) ? 1 : -1;
 		//randomly choose a magnitude
@@ -269,8 +277,8 @@ function NaturalTypewriter(config) {
 			updateDomElement(domElement, currChar);
 		}
 		var timeToWait = interval;
-		if (flexibility) {
-			timeToWait = calculateFlexibleInterval();
+		if (flexibility || pauseBetweenWords) {
+			timeToWait = calculateFlexibleInterval(currChar);
 		}
 		//call this function (recursively) to write the nextIndexth character
 		//of string after timeToWait milliseconds
