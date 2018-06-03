@@ -6,15 +6,21 @@ Andrew Puglionesi
 /* Constructor.
    Returns true on success and false on failure.
    Config is an object containing the following properties:
-   interval (required) is the number of milliseconds between
-   the typing of each character.
-   flexibility (optional, default 0) determines the numerical range
-   for possible intervals. Use it to simulate variable speed typing:
-   any interval value in the range (interval +/- flexibility) is equally
-   likely to occur.
-   backTrackProbability (optional, default 0) is the probability that a
-   given character will be written as a random letter, deleted, and
-   rewritten to simulate human error.
+	   interval (required) is the number of milliseconds between
+	   the typing of each character.
+	   flexibility (optional, default 0) determines the numerical range
+	   for possible intervals. Use it to simulate variable speed typing:
+	   any interval value in the range (interval +/- flexibility) is equally
+	   likely to occur.
+	   backTrackProbability (optional, default 0) is the probability that a
+	   given character will be written as a random letter, deleted, and
+	   rewritten to simulate human error.
+	   infinite (optional, default false), if it evaluates to true, causes the
+	   typewriter to type continuously in an infinite loop.
+	   loopWaitTime is the number of milliseconds the typewriter waits after each
+	   iteration when infnite is true.
+	   pauseBetweenWords is the number of milliseconds to pause between words separated
+	   by whitespace.
    */
 function NaturalTypewriter(config) {
 
@@ -137,7 +143,7 @@ function NaturalTypewriter(config) {
 	[interval +/- flexibility]. If this number is negative, 0 is used
 	as the interval. */
 	var calculateFlexibleInterval = function(character) {
-		if (pauseBetweenWords && character === ' ') {
+		if (pauseBetweenWords && (character === ' ' || character === '\n')) {
 			return pauseBetweenWords;
 		}
 		//randomly choose a sign (positive or negative) for the value to add to interval

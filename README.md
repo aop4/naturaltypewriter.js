@@ -1,6 +1,8 @@
 # naturaltypewriter.js
 A simple native JavaScript library to simulate someone typing in a DOM element. It shoots for a more "natural" feel, where an actual person might be adding the text.
 
+# [Demo](https://andrewpuglionesi.com/typewriter)
+
 ## Use
 Include in your page `<script src="naturaltypewriter.js"></script>`
 
@@ -11,8 +13,14 @@ var writer = new NaturalTypewriter({'interval':msBetweenChars, 'flexibility':var
 ```
 `interval` (required) is the number of milliseconds between the typing of each character.  
 `flexibility` (optional, default 0) determines the numerical range for possible intervals. Use it to simulate variable speed typing: any interval value in the range (interval +/- flexibility) is equally likely to occur. The range is truncated at 0 to prevent negative intervals from occuring.  
-`backTrackProbability` (optional, default 0) is the probability that a given character will be written as a random letter, deleted, and rewritten to simulate human error. Values above 0.05 cause it to look kind of unrealistic/clumsy.  
-Suggested starting points for these paramaters can be found in the use case. They all must be numbers.  
+`backTrackProbability` (optional, default 0) is the probability that a given character will be written as a random letter, deleted, and rewritten to simulate human error. Values above 0.05 cause it to look kind of unrealistic/clumsy.
+`infinite` (optional, default false), if it evaluates to true, causes the
+typewriter to type its first requested string continuously in an infinite loop. Once in this loop, the typewriter cannot fulfill another request.
+`loopWaitTime` is the number of milliseconds the typewriter waits after each
+iteration when infnite is true.
+`pauseBetweenWords` is the number of milliseconds to pause between words separated by whitespace (newlines and spaces).
+Suggested starting points for these paramaters can be found in the use case,
+but I suggest playing around with them to obtain your desired effect.
 
 ### NaturalTypewriter.append()
 ```
