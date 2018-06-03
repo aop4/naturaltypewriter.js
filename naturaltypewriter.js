@@ -21,27 +21,28 @@ Andrew Puglionesi
 	   iteration when infnite is true.
 	   pauseBetweenWords is the number of milliseconds to pause between words separated
 	   by whitespace.
-   */
+*/
 function NaturalTypewriter(config) {
 
 	/*
-	Variables and functions declared with var are effectively "private" members
+	Variables and functions declared without "this." are effectively 
+	private members. They can't be accessed by the user.
 	*/
 	var DEFAULT_FLEXIBILITY = 0;
 	var DEFAULT_BACKTRACK_PROB = 0;
 
 	/* Returns true if domElement is a valid DOM element. */
-	var checkElement = function(domElement, callerName) {
+	function checkElement(domElement, callerName) {
 		if (! ((domElement instanceof Element) && domElement)) {
 			console.error('The object passed into '+callerName+' is not an HTML element');
 			return false;
 		}
 		return true;
-	};
+	}
 
 	/* Returns true if interval is a valid time interval, i.e. a
 	non-negative number. */
-	var checkInterval = function(interval, callerName, intervalName) {
+	function checkInterval(interval, callerName, intervalName) {
 		if (interval < 0) {
 			console.error('The '+intervalName+' passed into '+callerName+' is not a number >= 0.');
 			return false;
@@ -54,11 +55,11 @@ function NaturalTypewriter(config) {
 			return false;
 		}
 		return true;
-	};
+	}
 
 	/* Returns true if prob is a valid numerical probability between 
 	0 and 1. */
-	var checkProbability = function(prob) {
+	function checkProbability(prob) {
 		if (!checkInterval(prob, 'constructor', 'backtrackProbability')) {
 			return false;
 		}
@@ -66,73 +67,31 @@ function NaturalTypewriter(config) {
 			return false;
 		}
 		return true;
-	};
+	}
 
 	/* Returns true if text is a non-empty string. */
-	var checkText = function(text, callerName) {
+	function checkText(text, callerName) {
 		if (! (text && text.constructor === String)) {
 			console.error('Empty string or invalid type for string to write into DOM element was passed into '+callerName);
 			return false;
 		}
 		return true;
-	};
+	}
 
 	/* Returns true if domElement is a valid DOM element and text is a
 	non-empty string. */
-	var checkArgs = function(domElement, text, callerName) {
+	function checkArgs(domElement, text, callerName) {
 		return ( checkElement(domElement, callerName) && checkText(text, callerName) );
-	};
+	}
 
 	/* Returns true if the configs object is non-empty and has an interval
 	property. */
-	var checkConfig = function(configs) {
+	function checkConfig(configs) {
 		if (!(configs && configs.interval)) {
 			console.error('You must pass a configuration object with a non-zero interval into the constructor.');
 			return false;
 		}
 		return true;
-	};
-	
-	/*************************************
-	Logic executed upon initialization.
-	*************************************/
-
-	//ensure the config object passed into the constructor is usable.
-	if (typeof config == undefined || !checkConfig(config)) {
-		console.error("Invalid or missing config object passed into constructor");
-		return false;
-	}
-	//ensure the interval is valid
-	if (!checkInterval(config.interval, 'constructor', 'interval')) {
-		return false;
-	}
-	//if the interval was a floating point number, just round it up
-	//since it will be used in setTimeout().
-	var interval = Math.ceil(config.interval);
-
-	var flexibility = config.flexibility || DEFAULT_FLEXIBILITY;
-	if (!checkInterval(flexibility, 'constructor', 'flexibility')) {
-		return false;
-	}
-	//if the flexibility was a floating point number, round it up as well
-	flexibility = Math.ceil(flexibility);
-
-	var backtrackProbability = config.backtrackProbability || DEFAULT_BACKTRACK_PROB;
-	//ensure the backtrack probability passed in is in the range [0, 1]
-	if (!checkProbability(backtrackProbability)) {
-		return false;
-	}
-	var justTypedRandomChar = false; //flag to indicate whether a random character
-					//(to simulate mistyping) was typed in the previous "keystroke"
-
-	var infinite = config.infinite;
-	var loopWaitTime = config.loopWaitTime || 1000;
-	if (!checkInterval(loopWaitTime, 'constructor', 'loopWaitTime')) {
-		return false;
-	}
-	var pauseBetweenWords = config.pauseBetweenWords || 0;
-	if (!checkInterval(pauseBetweenWords, 'constructor', 'pauseBetweenWords')) {
-		return false;
 	}
 
 	/* If pauseBetweenWords is defined, this returns it. Otherwise it's
@@ -142,7 +101,7 @@ function NaturalTypewriter(config) {
 	and the result is returned to give a new interval in the range 
 	[interval +/- flexibility]. If this number is negative, 0 is used
 	as the interval. */
-	var calculateFlexibleInterval = function(character) {
+	function calculateFlexibleInterval(character) {
 		if (pauseBetweenWords && (character === ' ' || character === '\n')) {
 			return pauseBetweenWords;
 		}
@@ -157,7 +116,7 @@ function NaturalTypewriter(config) {
 			newInterval = 0;
 		}
 		return newInterval;
-	};
+	}
 
 	var queue = []; //a queue holding pending write() and append() function calls
 		//(with their parameters) to wake up and execute when the current call
@@ -168,7 +127,7 @@ function NaturalTypewriter(config) {
 	/* Pushes a function call, with parameters, to the queue if the
 	object is already writing/appending data to a DOM element. If
 	the object isn't writing, simply executes the function call. */
-	var lock = function(writeRequest) {
+	function lock(writeRequest) {
 		if (objectIsWriting) {
 			queue.push(writeRequest);
 			//wait to get woken up
@@ -178,12 +137,12 @@ function NaturalTypewriter(config) {
 		//which starts writeChar() recursion, with the stored arguments
 		writeRequest.execute(writeRequest.domElement, writeRequest.string, writeRequest.startIndex, writeRequest.clearElemText);
 		objectIsWriting = true;
-	};
+	}
 
 	/* Called when a NaturalTypewriter reaches the end of the string it's
 	writing. Dequeues and executes any queued function calls, or resets
 	the objectIsWriting attribute to false if none are queued anymore. */
-	var unlock = function() {
+	function unlock() {
 		//if the queue isn't empty
 		if (queue.length) {
 			//pop the next write request from the queue
@@ -197,34 +156,34 @@ function NaturalTypewriter(config) {
 		else {
 			objectIsWriting = false;
 		}
-	};
+	}
 
 	/* Returns true with a probability equal to the argument. */
-	var decideProbability = function(probability) {
+	function decideProbability(probability) {
 		return (Math.random() < probability);
-	};
+	}
 
 	/* Generate a random character in [a-z] */
-	var getRandomCharacter = function() {
+	function getRandomCharacter() {
 		//generate a lowercase letter (between ascii codes 97 and 122)
 		var asciiCode = Math.floor(Math.random()*25) + 97;
 		return String.fromCharCode(asciiCode);
-	};
+	}
 
 	/* Deletes the final numChars characters from the text of
 	domElement */
-	var deleteCharsFromElement = function(domElement, numChars) {
+	function deleteCharsFromElement(domElement, numChars) {
 		domElement.innerHTML = domElement.innerHTML.slice(0, numChars * -1);
-	};
+	}
 
 	/* Physically writes a character to domElement, replacing '\n' with a <br>
 	element. (text could also be a 2+ character string, in theory.)*/
-	var updateDomElement = function(domElement, text) {
+	function updateDomElement(domElement, text) {
 		if (text === '\n') {
 			text = '<br />';
 		}
 		domElement.innerHTML += text;
-	};
+	}
 
 	/* The meat of things. If backtrackProbability is 0, writeChar() just 
 	writes the indexth character of string into domElement, then
@@ -236,7 +195,7 @@ function NaturalTypewriter(config) {
 	where it left off at the next interval, like a person mistyping a
 	character, deleting it, and retyping it... which I just did several
 	times. */
-	var writeChar = function(domElement, string, index, clearElemText) {
+	function writeChar(domElement, string, index, clearElemText) {
 		//if all characters in string have been written
 		if (index === string.length) {
 			if (infinite) {
@@ -289,11 +248,11 @@ function NaturalTypewriter(config) {
 		//call this function (recursively) to write the nextIndexth character
 		//of string after timeToWait milliseconds
 		setTimeout(writeChar, timeToWait, domElement, string, nextIndex, clearElemText);
-	};
+	}
 
 	/* Begins the recursive call chain that writes each character of string
 	to domElement. Clears the text of domElement if clearElemText evaluates to true. */
-	var startWriting = function(domElement, string, startIndex, clearElemText) {
+	function startWriting(domElement, string, startIndex, clearElemText) {
 		//for calls to write(), clear previous text from the element
 		if (clearElemText) {
 			//clear text
@@ -301,22 +260,21 @@ function NaturalTypewriter(config) {
 		}
 		//start writing string to domElement--initialize a recursive call chain
 		writeChar(domElement, string, startIndex, clearElemText);
-	};
+	}
 
 	/* Queues or executes a requested write()/append() call (see lock()) */
-	var writeString = function(domElement, string, clearElemText) {
-		//requestData.execute is the function to queue (if this object is 
+	function writeString(domElement, string, clearElemText) {
+		//requestData['execute'] is the function to queue (if this object is 
 		//currently writing to a DOM element) or execute in lock(),
 		//and the rest of requestData's properties are the parameters
 		//to pass to that function
 		var requestData = {'execute':startWriting, 'domElement':domElement, 'string':string, 'startIndex':0, 'clearElemText':clearElemText};
 		lock(requestData);
-	};
+	}
 
 	/* Check the arguments for and queue/execute a write/append command.
 	Returns true if the command is executed correctly. */
-	var processCommand = function(domElement, text, commandName, 
-		clearDomElement) {
+	function processCommand(domElement, text, commandName, clearDomElement) {
 		//ensure the arguments are a valid domElement and string
 		if (! checkArgs(domElement, text, commandName)) {
 			return false;
@@ -326,7 +284,7 @@ function NaturalTypewriter(config) {
 		//is executed/dequeued.
 		writeString(domElement, text, clearDomElement);
 		return true;
-	};
+	}
 
 	/* 
 	Public methods 
@@ -345,4 +303,49 @@ function NaturalTypewriter(config) {
 	this.append = function(domElement, text) {
 		return processCommand(domElement, text, 'append()', false);
 	};
+
+
+	/*************************************
+	Logic executed upon initialization.
+	*************************************/
+
+	//ensure the config object passed into the constructor is usable.
+	if (typeof config == undefined || !checkConfig(config)) {
+		console.error("Invalid or missing config object passed into constructor");
+		return false;
+	}
+	//ensure the interval is valid
+	if (!checkInterval(config.interval, 'constructor', 'interval')) {
+		return false;
+	}
+	//if the interval was a floating point number, just round it up
+	//since it will be used in setTimeout().
+	var interval = Math.ceil(config.interval);
+
+	var flexibility = config.flexibility || DEFAULT_FLEXIBILITY;
+	if (!checkInterval(flexibility, 'constructor', 'flexibility')) {
+		return false;
+	}
+	//if the flexibility was a floating point number, round it up as well
+	flexibility = Math.ceil(flexibility);
+
+	var backtrackProbability = config.backtrackProbability || DEFAULT_BACKTRACK_PROB;
+	//ensure the backtrack probability passed in is in the range [0, 1]
+	if (!checkProbability(backtrackProbability)) {
+		return false;
+	}
+	var justTypedRandomChar = false; //flag to indicate whether a random character
+					//(to simulate mistyping) was typed in the previous "keystroke"
+
+	var infinite = config.infinite;
+	var loopWaitTime = config.loopWaitTime || 1000;
+	if (!checkInterval(loopWaitTime, 'constructor', 'loopWaitTime')) {
+		return false;
+	}
+	loopWaitTime = Math.ceil(loopWaitTime);
+	var pauseBetweenWords = config.pauseBetweenWords || 0;
+	if (!checkInterval(pauseBetweenWords, 'constructor', 'pauseBetweenWords')) {
+		return false;
+	}
+	pauseBetweenWords = Math.ceil(pauseBetweenWords);
 }
