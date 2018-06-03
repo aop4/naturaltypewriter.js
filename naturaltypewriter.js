@@ -15,6 +15,7 @@ Andrew Puglionesi
 	   backTrackProbability (optional, default 0) is the probability that a
 	   given character will be written as a random letter, deleted, and
 	   rewritten to simulate human error.
+	   backTrackDelay (optional, default 0) is extra delay, in milliseconds, before a character is deleted.
 	   infinite (optional, default false), if it evaluates to true, causes the
 	   typewriter to type continuously in an infinite loop.
 	   loopWaitTime is the number of milliseconds the typewriter waits after each
@@ -94,14 +95,15 @@ function NaturalTypewriter(config) {
 		return true;
 	}
 
-	/* If pauseBetweenWords is defined, this returns it. Otherwise it's
-	used when flexibility != 0, i.e., the user wants the typing speed
+	/* If pauseBetweenWords is non-zero, this returns it.
+	Used when flexibility != 0, i.e., the user wants the typing speed
 	to vary from character to character. A value in the range
 	[-flexibility, flexibility] is added to the object's interval attribute,
 	and the result is returned to give a new interval in the range 
 	[interval +/- flexibility]. If this number is negative, 0 is used
-	as the interval. */
-	function calculateFlexibleInterval(character) {
+	as the interval. If charIsMistyped is true (a bad character was just typed),
+	backTrackDelay is added to the computed interval.*/
+	function calculateFlexibleInterval(character, charIsMistyped) {
 		if (pauseBetweenWords && (character === ' ' || character === '\n')) {
 			return pauseBetweenWords;
 		}
@@ -114,6 +116,9 @@ function NaturalTypewriter(config) {
 		//don't allow negative intervals to occur
 		if (newInterval < 0) {
 			newInterval = 0;
+		}
+		if (charIsMistyped) {
+			newInterval += backtrackDelay;
 		}
 		return newInterval;
 	}
@@ -243,7 +248,7 @@ function NaturalTypewriter(config) {
 		}
 		var timeToWait = interval;
 		if (flexibility || pauseBetweenWords) {
-			timeToWait = calculateFlexibleInterval(currChar);
+			timeToWait = calculateFlexibleInterval(currChar, justTypedRandomChar);
 		}
 		//call this function (recursively) to write the nextIndexth character
 		//of string after timeToWait milliseconds
@@ -348,4 +353,11 @@ function NaturalTypewriter(config) {
 		return false;
 	}
 	pauseBetweenWords = Math.ceil(pauseBetweenWords);
+	var backtrackDelay = config.backtrackDelay || 0;
+	if (!checkInterval(backtrackDelay, 'constructor', 'backtrackDelay')) {
+		return false;
+	}
+	backtrackDelay = Math.ceil(backtrackDelay);
+
+	return true;
 }
