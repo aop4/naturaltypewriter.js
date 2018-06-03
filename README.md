@@ -8,19 +8,28 @@ Include in your page `<script src="naturaltypewriter.js"></script>`
 
 ### Constructor
 ```
-var writer = new NaturalTypewriter({'interval':msBetweenChars, 'flexibility':variabilityInInterval,
-'backtrackProbability':probabilityOfBacktracking});
+var config = {
+  'interval':msBetweenChars,
+  'flexibility':variabilityInInterval,
+  'backtrackProbability':probabilityOfBacktracking,
+  'infinite':loopRepeatedly,
+  'loopWaitTime':msBetweenLoops,
+  'pauseBetweenWords':msBetweenWords
+};
+var writer = new NaturalTypewriter(config);
+
 ```
 `interval` (required) is the number of milliseconds between the typing of each character.  
 `flexibility` (optional, default 0) determines the numerical range for possible intervals. Use it to simulate variable speed typing: any interval value in the range (interval +/- flexibility) is equally likely to occur. The range is truncated at 0 to prevent negative intervals from occuring.  
-`backTrackProbability` (optional, default 0) is the probability that a given character will be written as a random letter, deleted, and rewritten to simulate human error. Values above 0.05 cause it to look kind of unrealistic/clumsy.
+`backTrackProbability` (optional, default 0) is the probability that a given character will be written as a random letter, deleted, and rewritten to simulate human error. Values above 0.05 cause it to look kind of unrealistic/clumsy.  
 `infinite` (optional, default false), if it evaluates to true, causes the
-typewriter to type its first requested string continuously in an infinite loop. Once in this loop, the typewriter cannot fulfill another request.
-`loopWaitTime` is the number of milliseconds the typewriter waits after each
-iteration when infnite is true.
-`pauseBetweenWords` is the number of milliseconds to pause between words separated by whitespace (newlines and spaces).
+typewriter to type its first requested string continuously in an infinite loop. Once in this loop, the typewriter cannot fulfill another request.  
+`loopWaitTime` (optional, default 1000) is the number of milliseconds the typewriter waits after each
+iteration when infnite is true.  
+`pauseBetweenWords` (optional, default whatever the interval is) is the number of milliseconds to pause between words separated by whitespace (newlines and spaces).  
+
 Suggested starting points for these paramaters can be found in the use case,
-but I suggest playing around with them to obtain your desired effect.
+but I suggest playing around with them to obtain your desired effect.  
 
 ### NaturalTypewriter.append()
 ```
@@ -34,7 +43,7 @@ Appends `text` to `domElement`'s HTML content.
 ```
 writer.write(domElement, text);
 ```
-Caution: clears any text currently in `domElement` and writes `text` into `domElement`.  
+Caution: clears any content currently in `domElement` and writes `text` into `domElement`.  
 `domElement` is the DOM element to clear and then write to. It must be a native DOM element.  
 `text` is the text to write. It must be a string. Newlines (`'\n'`) are escaped as `<br>` elements and so work as expected. They can be depicted directly with `'\\n'`.  
 
