@@ -1,7 +1,7 @@
 # naturaltypewriter.js
 A simple native JavaScript library to simulate someone typing in a DOM element. It shoots for a more "natural" feel, where an actual person might be adding the text.
 
-# [Demo](https://andrewpuglionesi.com/typewriter)
+# [Demo](www.andrewpuglionesi.com/typewriter)
 
 ## Use
 Include in your page `<script src="naturaltypewriter.js"></script>`
