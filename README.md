@@ -20,14 +20,14 @@ var config = {
 var writer = new NaturalTypewriter(config);
 
 ```
+config has the following properties
 `interval` (required) is the number of milliseconds between the typing of each character.  
 `flexibility` (optional, default 0) determines the numerical range for possible intervals. Use it to simulate variable speed typing: any interval value in the range (interval +/- flexibility) is equally likely to occur. The range is truncated at 0 to prevent negative intervals from occuring.  
 `backTrackProbability` (optional, default 0) is the probability that a given character will be written as a random letter, deleted, and rewritten to simulate human error. Values above 0.05 cause it to look kind of unrealistic/clumsy.  
 `backtrackDelay` (optional, default 0) is an extra delay, in milliseconds, before a character is deleted.  
 `infinite` (optional, default false), if it evaluates to true, causes the
 typewriter to type its first requested string continuously in an infinite loop. Once in this loop, the typewriter cannot fulfill another request.  
-`loopWaitTime` (optional, default 1000) is the number of milliseconds the typewriter waits after each
-iteration when infnite is true.  
+`loopWaitTime` (optional, default 0) is the number of milliseconds the typewriter waits after each iteration to begin the next iteration when infnite is true.  
 `pauseBetweenWords` (optional, default whatever the interval is) is the number of milliseconds to pause between words separated by whitespace (newlines and spaces).  
 
 Suggested starting points for these paramaters can be found in the use case,
@@ -35,19 +35,36 @@ but I suggest playing around with them to obtain your desired effect.
 
 ### NaturalTypewriter.append()
 ```
-writer.append(domElement, text);
+var config = {
+	'domElement':yourElement, 
+	'text':yourText,
+	'delay':msBeforeExecution,
+	'callback':callbackFunction
+};
+writer.append(config);
 ```
-Appends `text` to `domElement`'s HTML content.  
-`domElement` is the DOM element to append text to. It must be a native DOM element.  
-`text` is the text to write. It must be a string. Newlines (`'\n'`) are escaped as `<br>` elements and so work as expected. They can be depicted directly with `'\\n'.`  
+Appends `config.text` to `config.domElement`'s HTML content.  
+`config.domElement` (required) is the DOM element to append text to. It must be a native DOM element.  
+`config.text` (required) is the text to write. It must be a string. Newlines (`'\n'`) are escaped as `<br>` elements and so work as expected. They can be depicted directly with `'\\n'.`  
+`config.delay` (optional) is the delay, in milliseconds, to wait before the command is executed. The delay will begin from the point when all prior commands for the calling object have been completed (or now, if there were none).  
+`config.callback` (optional) is a callback function to execute when the command is complete (i.e., when the object has written out `config.text` in its entirety). It also executes at the end of each loop if `infinite` is true in the calling object. The function can't have arguments, but you can of course use variables in your own script initialized outside your function's scope.  
+
 
 ### NaturalTypewriter.write()
 ```
-writer.write(domElement, text);
+var config = {
+	'domElement':yourElement, 
+	'text':yourText,
+	'delay':msBeforeExecution,
+	'callback':callbackFunction
+};
+writer.write(config);
 ```
-Caution: clears any content currently in `domElement` and writes `text` into `domElement`.  
-`domElement` is the DOM element to clear and then write to. It must be a native DOM element.  
-`text` is the text to write. It must be a string. Newlines (`'\n'`) are escaped as `<br>` elements and so work as expected. They can be depicted directly with `'\\n'`.  
+Caution: clears any content currently in `config.domElement` and writes `config.text` into `config.domElement`.  
+`config.domElement` (required) is the DOM element to clear and then write to. It must be a native DOM element.  
+`config.text` (required) is the text to write. It must be a string. Newlines (`'\n'`) are escaped as `<br>` elements and so work as expected. They can be depicted directly with `'\\n'`.  
+`config.delay` (optional) is the delay, in milliseconds, to wait before the command is executed. The delay will begin from the point when all prior commands for the calling object have been completed (or now, if there were none).  
+`config.callback` (optional) is a callback function to execute when the command is complete (i.e., when the object has written out `config.text` in its entirety). It also executes at the end of each loop if `infinite` is true in the calling object. The function can't have arguments, but you can of course use variables in your own script initialized outside your function's scope.  
 
 ## Example use case  
 
@@ -57,7 +74,7 @@ var writer = new NaturalTypewriter({'interval':40, 'flexibility':39, 'backtrackP
 
 var imageDescription = document.getElementById('img-description');
 
-writer.append(imageDescription, 'This is the best image ever');
+writer.append({'domElement':imageDescription, 'text':This is the best image ever'});
 ```
 
 ## Concurrency

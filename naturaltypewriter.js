@@ -70,18 +70,26 @@ function NaturalTypewriter(config) {
 		return true;
 	}
 
-	/* Returns true if text is a non-empty string. */
+	/* Returns true if text is a string. */
 	function checkText(text, callerName) {
+		//allow the empty string
+		if (text === '') {
+			return true;
+		}
 		if (! (text && text.constructor === String)) {
-			console.error('Empty string or invalid type for string to write into DOM element was passed into '+callerName);
+			console.error('Invalid type for string to write into DOM element was passed into '+callerName);
 			return false;
 		}
 		return true;
 	}
 
 	/* Returns true if domElement is a valid DOM element and text is a
-	non-empty string. */
-	function checkArgs(domElement, text, callerName) {
+	string. */
+	function checkArgs(domElement, text, callerName, delay) {
+		//if the delay is defined/non-zero, make sure it's a valid time interval
+		if (delay && !checkInterval(delay, callerName, 'delay')) {
+			return false;
+		}
 		return ( checkElement(domElement, callerName) && checkText(text, callerName) );
 	}
 
@@ -140,7 +148,9 @@ function NaturalTypewriter(config) {
 		}
 		//execute the queued function startWriting, 
 		//which starts writeChar() recursion, with the stored arguments
-		writeRequest.execute(writeRequest.domElement, writeRequest.string, writeRequest.startIndex, writeRequest.clearElemText);
+		writeRequest.execute(writeRequest.domElement, writeRequest.string,
+			writeRequest.startIndex, writeRequest.clearElemText, 
+			writeRequest.callback, writeRequest.delay);
 		objectIsWriting = true;
 	}
 
@@ -155,7 +165,9 @@ function NaturalTypewriter(config) {
 			//execute ("wake up") the queued function startWriting, 
 			//which starts writeChar() recursion, with the arguments
 			//stored when the function was queued.
-			nextRequest.execute(nextRequest.domElement, nextRequest.string, nextRequest.startIndex, nextRequest.clearElemText);
+			nextRequest.execute(nextRequest.domElement, nextRequest.string, nextRequest.startIndex, 
+				nextRequest.clearElemText, nextRequest.callback,
+				nextRequest.delay);
 		}
 		//if the queue is empty (all write/append calls thus far are completed)
 		else {
@@ -200,13 +212,16 @@ function NaturalTypewriter(config) {
 	where it left off at the next interval, like a person mistyping a
 	character, deleting it, and retyping it... which I just did several
 	times. */
-	function writeChar(domElement, string, index, clearElemText) {
+	function writeChar(domElement, string, index, clearElemText, callback) {
 		//if all characters in string have been written
 		if (index === string.length) {
+			//execute the callback function
+			if (callback) {
+				callback();
+			}
 			if (infinite) {
 				//re-type the phrase after loopWaitTime ms
-				setTimeout(startWriting, loopWaitTime, domElement, 
-					string, 0, clearElemText);
+				startWriting(domElement, string, 0, clearElemText, callback, loopWaitTime);
 			}
 			else {
 				//dequeue the next write request if applicable,
@@ -252,42 +267,64 @@ function NaturalTypewriter(config) {
 		}
 		//call this function (recursively) to write the nextIndexth character
 		//of string after timeToWait milliseconds
-		setTimeout(writeChar, timeToWait, domElement, string, nextIndex, clearElemText);
+		setTimeout(writeChar, timeToWait, domElement, string, nextIndex, clearElemText,
+			callback);
 	}
 
 	/* Begins the recursive call chain that writes each character of string
 	to domElement. Clears the text of domElement if clearElemText evaluates to true. */
-	function startWriting(domElement, string, startIndex, clearElemText) {
+	function execCommand(domElement, string, startIndex, clearElemText,
+		callback) {
 		//for calls to write(), clear previous text from the element
 		if (clearElemText) {
 			//clear text
 			domElement.innerHTML = '';
 		}
 		//start writing string to domElement--initialize a recursive call chain
-		writeChar(domElement, string, startIndex, clearElemText);
+		writeChar(domElement, string, startIndex, clearElemText, callback);
+	}
+
+	/* Begins execution of a queued write() or append() command, enforcing
+	an initial delay if applicable. */
+	function startWriting(domElement, string, startIndex, clearElemText,
+		callback, delay) {
+		//if the user specified a delay for this operation
+		if (delay) {
+			//call execCommand() after delay milliseconds
+			setTimeout(execCommand, delay, domElement, string, startIndex,
+				clearElemText, callback)
+		}
+		else {
+			//call execCommand() immediately
+			execCommand(domElement, string, startIndex, clearElemText, 
+				callback);
+		}
 	}
 
 	/* Queues or executes a requested write()/append() call (see lock()) */
-	function writeString(domElement, string, clearElemText) {
+	function writeString(domElement, string, clearElemText, callback, delay) {
 		//requestData['execute'] is the function to queue (if this object is 
 		//currently writing to a DOM element) or execute in lock(),
 		//and the rest of requestData's properties are the parameters
 		//to pass to that function
-		var requestData = {'execute':startWriting, 'domElement':domElement, 'string':string, 'startIndex':0, 'clearElemText':clearElemText};
+		var requestData = {'execute':startWriting, 'domElement':domElement,
+		'string':string, 'startIndex':0, 'clearElemText':clearElemText,
+		'callback':callback, 'delay':delay};
 		lock(requestData);
 	}
 
 	/* Check the arguments for and queue/execute a write/append command.
 	Returns true if the command is executed correctly. */
-	function processCommand(domElement, text, commandName, clearDomElement) {
+	function processCommand(domElement, text, commandName, clearDomElement, 
+		callback, delay) {
 		//ensure the arguments are a valid domElement and string
-		if (! checkArgs(domElement, text, commandName)) {
+		if (! checkArgs(domElement, text, commandName, delay)) {
 			return false;
 		}
 		//call writeString, indicating with clearDomElement whether 
 		//the text in domElement should be cleared once the operation
 		//is executed/dequeued.
-		writeString(domElement, text, clearDomElement);
+		writeString(domElement, text, clearDomElement, callback, delay);
 		return true;
 	}
 
@@ -295,18 +332,26 @@ function NaturalTypewriter(config) {
 	Public methods 
 	*/
 
-	/* Command to clear domElement and then write text into domElement.
+	/* Clear write_config.domElement and then write write_config.text into it.
+	write_config.delay specifies an optional delay before the operation will occur,
+	and write_config.callback optionally specifies a callback function to execute
+	after writing.
 	Returns false if an error occurred, or true on success. */
-	this.write = function(domElement, text) {
-		return processCommand(domElement, text, 'write()', true);
+	this.write = function(write_config) {
+		return processCommand(write_config.domElement, write_config.text, 
+			'write()', true, write_config.callback, write_config.delay);
 	};
 
 	//D.R.Y.
 
-	/* Command to append text to domElement. Returns false if an
-	error occurred, or true on success. */
-	this.append = function(domElement, text) {
-		return processCommand(domElement, text, 'append()', false);
+	/* Command to append append_config.text to append_config.domElement. 
+	append_config.delay specifies an optional delay before the operation will occur,
+	and append_config.callback optionally specifies a callback function to execute
+	after appending.
+	Returns false if an error occurred, or true on success. */
+	this.append = function(append_config) {
+		return processCommand(append_config.domElement, append_config.text, 
+			'append()', false, append_config.callback, append_config.delay);
 	};
 
 
@@ -343,7 +388,7 @@ function NaturalTypewriter(config) {
 					//(to simulate mistyping) was typed in the previous "keystroke"
 
 	var infinite = config.infinite;
-	var loopWaitTime = config.loopWaitTime || 1000;
+	var loopWaitTime = config.loopWaitTime || 0;
 	if (!checkInterval(loopWaitTime, 'constructor', 'loopWaitTime')) {
 		return false;
 	}
