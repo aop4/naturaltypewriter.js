@@ -12,6 +12,7 @@ var config = {
   'interval':msBetweenChars,
   'flexibility':variabilityInInterval,
   'backtrackProbability':probabilityOfBacktracking,
+  'smartBacktracking':aBoolean,
   'backtrackDelay':delayBeforeDelete,
   'infinite':loopRepeatedly,
   'loopWaitTime':msBetweenLoops,
@@ -23,7 +24,8 @@ var writer = new NaturalTypewriter(config);
 config has the following properties
 `interval` (required) is the number of milliseconds between the typing of each character.  
 `flexibility` (optional, default 0) determines the numerical range for possible intervals. Use it to simulate variable speed typing: any interval value in the range (interval +/- flexibility) is equally likely to occur. The range is truncated at 0 to prevent negative intervals from occuring.  
-`backTrackProbability` (optional, default 0) is the probability that a given character will be written as a random letter, deleted, and rewritten to simulate human error. Values above 0.05 cause it to look kind of unrealistic/clumsy.  
+`backTrackProbability` (optional, default 0) is the probability that a given character will be written as a random letter, deleted, and rewritten to simulate human error. Values above 0.05 cause it to look kind of unrealistic/clumsy. 
+`smartBacktracking` (optional, default true) causes any characters mistyped during backtracking not to be chosen totally randomly, but rather to be chosen from a set of characters near the intended character on the keyboard.  
 `backtrackDelay` (optional, default 0) is an extra delay, in milliseconds, before a character is deleted.  
 `infinite` (optional, default false), if it evaluates to true, causes the
 typewriter to type its first requested string continuously in an infinite loop. Once in this loop, the typewriter cannot fulfill another request.  

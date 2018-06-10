@@ -15,6 +15,9 @@ Andrew Puglionesi
 	   backTrackProbability (optional, default 0) is the probability that a
 	   given character will be written as a random letter, deleted, and
 	   rewritten to simulate human error.
+	   smartBacktracking (optional, default true) causes any backtracked characters not to be chosen
+	   randomly, but rather to be chosen from a set of characters near the intended character on the
+	   keyboard.
 	   backTrackDelay (optional, default 0) is extra delay, in milliseconds, before a character is deleted.
 	   infinite (optional, default false), if it evaluates to true, causes the
 	   typewriter to type continuously in an infinite loop.
@@ -180,6 +183,85 @@ function NaturalTypewriter(config) {
 		return (Math.random() < probability);
 	}
 
+	var nearbyKeyboardLetters = { //stores chars near a given key on the keyboard
+		'a':['q','s','z'],
+		'b':['v','g','h','n'],
+		'c':['x','d','f','v'],
+		'd':['e','s','x','c','f','r'],
+		'e':['w','d','r'],
+		'f':['r','d','c','v','g','t'],
+		'g':['f','v','b','h', 'y', 't'],
+		'h':['g','b','n','j', 'y'],
+		'i':['u','k','o'],
+		'j':['h','n','m','k', 'u'],
+		'k':['j','m','l','i'],
+		'l':['k','o','p'],
+		'm':['n','j','k'],
+		'n':['b','h','j','m'],
+		'o':['i','k','l','p'],
+		'p':['o','l'],
+		'q':['a','w','s'],
+		'r':['e','d','f','g','t'],
+		's':['a','z','x','d','w'],
+		't':['r','f','g','h','y'],
+		'u':['y','h','j','k','i'],
+		'v':['f','g','b'],
+		'w':['q','s','e'],
+		'x':['z','s','d','c'],
+		'y':['t','h','u','g','j'],
+		'z':['a','s','x'],
+		',':['.'],
+		'.':[',',';'],
+		':':[';'],
+		';':[':'],
+		'?':[':'],
+		'A':['Q','S','Z'],
+		'B':['V','G','H','N'],
+		'C':['X','D','F','V'],
+		'D':['E','S','X','C','F','R'],
+		'E':['W','D','R'],
+		'F':['R','D','C','V','G','T'],
+		'G':['F','V','B','H', 'Y', 'T'],
+		'H':['G','B','N','J', 'Y'],
+		'I':['U','K','O'],
+		'J':['H','N','M','K', 'U'],
+		'K':['J','M','L','I'],
+		'L':['K','O','P'],
+		'M':['N','J','K'],
+		'N':['B','H','J','M'],
+		'O':['I','K','L','P'],
+		'P':['O','L'],
+		'Q':['A','W','S'],
+		'R':['E','D','F','G','T'],
+		'S':['A','Z','X','D','W'],
+		'T':['R','F','G','H','Y'],
+		'U':['Y','H','J','K','I'],
+		'V':['F','G','B'],
+		'W':['Q','S','E'],
+		'X':['Z','S','D','C'],
+		'Y':['T','H','U','G','J'],
+		'Z':['A','S','X'],
+		' ':[' '], //it looks really weird when you type a letter instead of a space, so
+					//I'm not allowing it
+	}
+
+	/* When possible, queries nearbyKeyboardLetters for current character
+	and returns a character next to it on a US keyboard. Otherwise, it returns
+	a random letter. */
+	function getSmartRandomCharacter(currChar) {
+		//get an array of characters near to currChar on the keyboard
+		var nearbyChars = nearbyKeyboardLetters[currChar];
+		//if any are found
+		if (nearbyChars) {
+			//pick a random nearby character (a random element in the array)
+			return nearbyChars[Math.floor( Math.random()*nearbyChars.length )];
+		}
+		else {
+			//return a random letter
+			return getRandomCharacter();
+		}
+	}
+
 	/* Generate a random character in [a-z] */
 	function getRandomCharacter() {
 		//generate a lowercase letter (between ascii codes 97 and 122)
@@ -239,7 +321,7 @@ function NaturalTypewriter(config) {
 			//based on the backtrack probability
 			if (decideProbability(backtrackProbability)) {
 				//select a random character to "mistype"
-				currChar = getRandomCharacter();
+				currChar = (smartBacktracking ? getSmartRandomCharacter(currChar) : getRandomCharacter());
 				//indicate, for the next iteration, that we're typing a random char
 				justTypedRandomChar = true;
 				//do not increment index for the next function call. We won't be writing
@@ -403,6 +485,11 @@ function NaturalTypewriter(config) {
 		return false;
 	}
 	backtrackDelay = Math.ceil(backtrackDelay);
+
+	var smartBacktracking = true; //make true by default
+	if (config.smartBacktracking === false) {
+		smartBacktracking = false;
+	}
 
 	return true;
 }
