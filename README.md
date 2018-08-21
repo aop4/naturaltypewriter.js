@@ -10,14 +10,14 @@ Include in your page `<script src="naturaltypewriter.js"></script>`
 ### Constructor
 ```
 var config = {
-  'interval':msBetweenChars,
-  'flexibility':variabilityInInterval,
-  'backtrackProbability':probabilityOfBacktracking,
-  'smartBacktracking':aBoolean,
-  'backtrackDelay':delayBeforeDelete,
-  'infinite':loopRepeatedly,
-  'loopWaitTime':msBetweenLoops,
-  'pauseBetweenWords':msBetweenWords
+  'interval':70,
+  'flexibility':20,
+  'backtrackProbability':0.003,
+  'smartBacktracking':true,
+  'backtrackDelay':400,
+  'infinite':true,
+  'loopWaitTime':3000,
+  'pauseBetweenWords':0
 };
 var writer = new NaturalTypewriter(config);
 
@@ -33,8 +33,7 @@ typewriter to type its first requested string continuously in an infinite loop. 
 `loopWaitTime` (optional, default 0) is the number of milliseconds the typewriter waits after each iteration to begin the next iteration when infnite is true.  
 `pauseBetweenWords` (optional, default whatever the interval is) is the number of milliseconds to pause between words separated by whitespace (newlines and spaces).  
 
-Suggested starting points for these paramaters can be found in the use case,
-but I suggest playing around with them to obtain your desired effect.  
+Some possible starting points for these parameters are above, but I suggest playing around with them to obtain your desired effect. Technically you can get away with just using `interval`.
 
 ### NaturalTypewriter.append()
 ```
