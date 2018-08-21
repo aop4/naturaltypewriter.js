@@ -35,7 +35,7 @@ typewriter to type its first requested string continuously in an infinite loop. 
 
 Some possible starting points for these parameters are above, but I suggest playing around with them to obtain your desired effect. Technically you can get away with just using `interval`.
 
-### NaturalTypewriter.append()
+### *writer*.append()
 ```
 var config = {
 	'domElement':yourElement, 
@@ -49,10 +49,10 @@ Appends `config.text` to `config.domElement`'s HTML content.
 `config.domElement` (required) is the DOM element to append text to. It must be a native DOM element.  
 `config.text` (required) is the text to write. It must be a string. Newlines (`'\n'`) are escaped as `<br>` elements and so work as expected. They can be depicted directly with `'\\n'.`  
 `config.delay` (optional) is the delay, in milliseconds, to wait before the command is executed. The delay will begin from the point when all prior commands for the calling object have been completed (or now, if there were none).  
-`config.callback` (optional) is a callback function to execute when the command is complete (i.e., when the object has written out `config.text` in its entirety). It also executes at the end of each loop if `infinite` is true in the calling object. The function can't have arguments, but you can of course use variables in your own script initialized outside your function's scope.  
+`config.callback` (optional) is a callback function to execute when the command is complete (i.e., when the object has written out `config.text` in its entirety). It also executes at the end of each loop if `infinite` is true in the calling object. The callback function can't have arguments, but you can of course use variables in your own script initialized outside your function's scope.  
 
 
-### NaturalTypewriter.write()
+### *writer*.write()
 ```
 var config = {
 	'domElement':yourElement, 
@@ -66,12 +66,12 @@ Caution: clears any content currently in `config.domElement` and writes `config.
 `config.domElement` (required) is the DOM element to clear and then write to. It must be a native DOM element.  
 `config.text` (required) is the text to write. It must be a string. Newlines (`'\n'`) are escaped as `<br>` elements and so work as expected. They can be depicted directly with `'\\n'`.  
 `config.delay` (optional) is the delay, in milliseconds, to wait before the command is executed. The delay will begin from the point when all prior commands for the calling object have been completed (or now, if there were none).  
-`config.callback` (optional) is a callback function to execute when the command is complete (i.e., when the object has written out `config.text` in its entirety). It also executes at the end of each loop if `infinite` is true in the calling object. The function can't have arguments, but you can of course use variables in your own script initialized outside your function's scope.  
+`config.callback` (optional) is a callback function to execute when the command is complete (i.e., when the object has written out `config.text` in its entirety). It also executes at the end of each loop if `infinite` is true in the calling object. The callback function can't have arguments, but you can of course use variables in your own script initialized outside your function's scope.  
 
-### NaturalTypewriter.clearQueue()
+### *writer*.clearQueue()
 Clears any pending jobs for the typewriter (write or append calls that were made in the past but haven't been executed yet).
 
-### NaturalTypewriter.killActivity()
+### *writer*.killActivity()
 Completely halts the current write/append and all pending writes/appends. They cannot be resumed. However, all write() and append() calls made *after* calling killActivity() will work.
 
 ## Example use case  
