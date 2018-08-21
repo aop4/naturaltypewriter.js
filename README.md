@@ -2,6 +2,7 @@
 A simple native JavaScript library to simulate someone typing in a DOM element. It shoots for a more "natural" feel, where an actual person might be adding the text.
 
 # <a href="http://www.andrewpuglionesi.com/typewriter" target="_blank">Demo</a>
+## <a href="http://www.andrewpuglionesi.com/blogpost" target="_blank">Artsy demo</a>
 
 ## Use
 Include in your page `<script src="naturaltypewriter.js"></script>`
@@ -67,6 +68,12 @@ Caution: clears any content currently in `config.domElement` and writes `config.
 `config.text` (required) is the text to write. It must be a string. Newlines (`'\n'`) are escaped as `<br>` elements and so work as expected. They can be depicted directly with `'\\n'`.  
 `config.delay` (optional) is the delay, in milliseconds, to wait before the command is executed. The delay will begin from the point when all prior commands for the calling object have been completed (or now, if there were none).  
 `config.callback` (optional) is a callback function to execute when the command is complete (i.e., when the object has written out `config.text` in its entirety). It also executes at the end of each loop if `infinite` is true in the calling object. The function can't have arguments, but you can of course use variables in your own script initialized outside your function's scope.  
+
+### NaturalTypewriter.clearQueue()
+Clears any pending jobs for the typewriter (write or append calls that were made in the past but haven't been executed yet).
+
+### NaturalTypewriter.killActivity()
+Completely halts the current write/append and all pending writes/appends. They cannot be resumed. However, all write() and append() calls made *after* calling killActivity() will work.
 
 ## Example use case  
 

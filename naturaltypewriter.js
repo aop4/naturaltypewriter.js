@@ -35,6 +35,92 @@ function NaturalTypewriter(config) {
 	var DEFAULT_FLEXIBILITY = 0;
 	var DEFAULT_BACKTRACK_PROB = 0;
 
+	var interval; //ms delay between typing characters, without flexibility
+	var flexibility; //any interval value in the range (interval +/- flexibility) is equally
+	   				 //likely to occur
+	var backtrackProbability; //probability backtrack functionality will occur
+							  //when a given char is typed
+	var justTypedRandomChar; //whether the typewriter typed a random character
+							 //in the previous iteration
+	var infinite; //whether the typewriter will repeat the job in an infinite loop
+	var loopWaitTime; //the time between loop iterations if infinite === true
+	var pauseBetweenWords; //ms to pause upon encountering whitespace
+	var backtrackDelay; //extra delay, in milliseconds, before a character is deleted
+						//during backtracking
+	var smartBacktracking; //if true, bad chars during backtracking are the near the
+						   //correct char on the keyboard
+
+
+	var stopJob = false; //whether to abandon the current job at the next iteration
+
+	var queue = []; //a queue holding pending write() and append() function calls
+		//(with their parameters) to wake up and execute when the current call
+		//is complete
+	var objectIsWriting = false; //a flag used to test whether the object
+	//is writing to a domElement
+
+	var nearbyKeyboardLetters = { //stores chars near a given key on the keyboard
+		'a':['q','s','z'],
+		'b':['v','g','h','n'],
+		'c':['x','d','f','v'],
+		'd':['e','s','x','c','f','r'],
+		'e':['w','d','r'],
+		'f':['r','d','c','v','g','t'],
+		'g':['f','v','b','h', 'y', 't'],
+		'h':['g','b','n','j', 'y'],
+		'i':['u','k','o'],
+		'j':['h','n','m','k', 'u'],
+		'k':['j','m','l','i'],
+		'l':['k','o','p'],
+		'm':['n','j','k'],
+		'n':['b','h','j','m'],
+		'o':['i','k','l','p'],
+		'p':['o','l'],
+		'q':['a','w','s'],
+		'r':['e','d','f','g','t'],
+		's':['a','z','x','d','w'],
+		't':['r','f','g','h','y'],
+		'u':['y','h','j','k','i'],
+		'v':['f','g','b'],
+		'w':['q','s','e'],
+		'x':['z','s','d','c'],
+		'y':['t','h','u','g','j'],
+		'z':['a','s','x'],
+		',':['.'],
+		'.':[',',';'],
+		':':[';'],
+		';':[':'],
+		'?':[':'],
+		'A':['Q','S','Z'],
+		'B':['V','G','H','N'],
+		'C':['X','D','F','V'],
+		'D':['E','S','X','C','F','R'],
+		'E':['W','D','R'],
+		'F':['R','D','C','V','G','T'],
+		'G':['F','V','B','H', 'Y', 'T'],
+		'H':['G','B','N','J', 'Y'],
+		'I':['U','K','O'],
+		'J':['H','N','M','K', 'U'],
+		'K':['J','M','L','I'],
+		'L':['K','O','P'],
+		'M':['N','J','K'],
+		'N':['B','H','J','M'],
+		'O':['I','K','L','P'],
+		'P':['O','L'],
+		'Q':['A','W','S'],
+		'R':['E','D','F','G','T'],
+		'S':['A','Z','X','D','W'],
+		'T':['R','F','G','H','Y'],
+		'U':['Y','H','J','K','I'],
+		'V':['F','G','B'],
+		'W':['Q','S','E'],
+		'X':['Z','S','D','C'],
+		'Y':['T','H','U','G','J'],
+		'Z':['A','S','X'],
+		' ':[' '], //it looks really weird when you type a letter instead of a space, so
+					//I'm not allowing it
+	}
+
 	/* Returns true if domElement is a valid DOM element. */
 	function checkElement(domElement, callerName) {
 		if (! ((domElement instanceof Element) && domElement)) {
@@ -134,12 +220,6 @@ function NaturalTypewriter(config) {
 		return newInterval;
 	}
 
-	var queue = []; //a queue holding pending write() and append() function calls
-		//(with their parameters) to wake up and execute when the current call
-		//is complete
-	var objectIsWriting = false; //a flag used to test whether the current
-	//object is writing to a domElement
-
 	/* Pushes a function call, with parameters, to the queue if the
 	object is already writing/appending data to a DOM element. If
 	the object isn't writing, simply executes the function call. */
@@ -183,68 +263,6 @@ function NaturalTypewriter(config) {
 		return (Math.random() < probability);
 	}
 
-	var nearbyKeyboardLetters = { //stores chars near a given key on the keyboard
-		'a':['q','s','z'],
-		'b':['v','g','h','n'],
-		'c':['x','d','f','v'],
-		'd':['e','s','x','c','f','r'],
-		'e':['w','d','r'],
-		'f':['r','d','c','v','g','t'],
-		'g':['f','v','b','h', 'y', 't'],
-		'h':['g','b','n','j', 'y'],
-		'i':['u','k','o'],
-		'j':['h','n','m','k', 'u'],
-		'k':['j','m','l','i'],
-		'l':['k','o','p'],
-		'm':['n','j','k'],
-		'n':['b','h','j','m'],
-		'o':['i','k','l','p'],
-		'p':['o','l'],
-		'q':['a','w','s'],
-		'r':['e','d','f','g','t'],
-		's':['a','z','x','d','w'],
-		't':['r','f','g','h','y'],
-		'u':['y','h','j','k','i'],
-		'v':['f','g','b'],
-		'w':['q','s','e'],
-		'x':['z','s','d','c'],
-		'y':['t','h','u','g','j'],
-		'z':['a','s','x'],
-		',':['.'],
-		'.':[',',';'],
-		':':[';'],
-		';':[':'],
-		'?':[':'],
-		'A':['Q','S','Z'],
-		'B':['V','G','H','N'],
-		'C':['X','D','F','V'],
-		'D':['E','S','X','C','F','R'],
-		'E':['W','D','R'],
-		'F':['R','D','C','V','G','T'],
-		'G':['F','V','B','H', 'Y', 'T'],
-		'H':['G','B','N','J', 'Y'],
-		'I':['U','K','O'],
-		'J':['H','N','M','K', 'U'],
-		'K':['J','M','L','I'],
-		'L':['K','O','P'],
-		'M':['N','J','K'],
-		'N':['B','H','J','M'],
-		'O':['I','K','L','P'],
-		'P':['O','L'],
-		'Q':['A','W','S'],
-		'R':['E','D','F','G','T'],
-		'S':['A','Z','X','D','W'],
-		'T':['R','F','G','H','Y'],
-		'U':['Y','H','J','K','I'],
-		'V':['F','G','B'],
-		'W':['Q','S','E'],
-		'X':['Z','S','D','C'],
-		'Y':['T','H','U','G','J'],
-		'Z':['A','S','X'],
-		' ':[' '], //it looks really weird when you type a letter instead of a space, so
-					//I'm not allowing it
-	}
-
 	/* When possible, queries nearbyKeyboardLetters for current character
 	and returns a character next to it on a US keyboard. Otherwise, it returns
 	a random letter. */
@@ -284,6 +302,10 @@ function NaturalTypewriter(config) {
 		domElement.innerHTML += text;
 	}
 
+	function clearQueue() {
+		queue = [];
+	}
+
 	/* The meat of things. If backtrackProbability is 0, writeChar() just 
 	writes the indexth character of string into domElement, then
 	sets a timeout that will call itself to write the next character
@@ -295,6 +317,13 @@ function NaturalTypewriter(config) {
 	character, deleting it, and retyping it... which I just did several
 	times. */
 	function writeChar(domElement, string, index, clearElemText, callback) {
+		//if stopJob is true, abandon this job
+		//and execute any queued jobs
+		if (stopJob) {
+			stopJob = false;
+			unlock();
+			return;
+		}
 		//if all characters in string have been written
 		if (index === string.length) {
 			//execute the callback function
@@ -414,82 +443,98 @@ function NaturalTypewriter(config) {
 	Public methods 
 	*/
 
-	/* Clear write_config.domElement and then write write_config.text into it.
-	write_config.delay specifies an optional delay before the operation will occur,
-	and write_config.callback optionally specifies a callback function to execute
+	/* Clear writeConfig.domElement and then write writeConfig.text into it.
+	writeConfig.delay specifies an optional delay before the operation will occur,
+	and writeConfig.callback optionally specifies a callback function to execute
 	after writing.
 	Returns false if an error occurred, or true on success. */
-	this.write = function(write_config) {
-		return processCommand(write_config.domElement, write_config.text, 
-			'write()', true, write_config.callback, write_config.delay);
+	this.write = function(writeConfig) {
+		return processCommand(writeConfig.domElement, writeConfig.text, 
+			'write()', true, writeConfig.callback, writeConfig.delay);
 	};
 
 	//D.R.Y.
 
-	/* Command to append append_config.text to append_config.domElement. 
-	append_config.delay specifies an optional delay before the operation will occur,
-	and append_config.callback optionally specifies a callback function to execute
+	/* Command to append appendConfig.text to appendConfig.domElement. 
+	appendConfig.delay specifies an optional delay before the operation will occur,
+	and appendConfig.callback optionally specifies a callback function to execute
 	after appending.
 	Returns false if an error occurred, or true on success. */
-	this.append = function(append_config) {
-		return processCommand(append_config.domElement, append_config.text, 
-			'append()', false, append_config.callback, append_config.delay);
+	this.append = function(appendConfig) {
+		return processCommand(appendConfig.domElement, appendConfig.text, 
+			'append()', false, appendConfig.callback, appendConfig.delay);
 	};
 
+	/* Clears the queue--abandons all pending write requests. */
+	this.clearQueue = function() {
+		clearQueue();
+	}
+
+	/* Permanently halts the current job and all pending jobs */
+	this.killActivity = function() {
+		if (objectIsWriting) {
+			stopJob = true;
+		}
+		clearQueue();
+	}
 
 	/*************************************
 	Logic executed upon initialization.
 	*************************************/
+	function setup() {
+		//ensure the config object passed into the constructor is usable.
+		if (typeof config == undefined || !checkConfig(config)) {
+			console.error("Invalid or missing config object passed into constructor");
+			return false;
+		}
+		//ensure the interval is valid
+		if (!checkInterval(config.interval, 'constructor', 'interval')) {
+			return false;
+		}
+		//if the interval was a floating point number, just round it up
+		//since it will be used in setTimeout().
+		interval = Math.ceil(config.interval);
 
-	//ensure the config object passed into the constructor is usable.
-	if (typeof config == undefined || !checkConfig(config)) {
-		console.error("Invalid or missing config object passed into constructor");
-		return false;
-	}
-	//ensure the interval is valid
-	if (!checkInterval(config.interval, 'constructor', 'interval')) {
-		return false;
-	}
-	//if the interval was a floating point number, just round it up
-	//since it will be used in setTimeout().
-	var interval = Math.ceil(config.interval);
+		flexibility = config.flexibility || DEFAULT_FLEXIBILITY;
+		if (!checkInterval(flexibility, 'constructor', 'flexibility')) {
+			return false;
+		}
+		//if the flexibility was a floating point number, round it up as well
+		flexibility = Math.ceil(flexibility);
 
-	var flexibility = config.flexibility || DEFAULT_FLEXIBILITY;
-	if (!checkInterval(flexibility, 'constructor', 'flexibility')) {
-		return false;
-	}
-	//if the flexibility was a floating point number, round it up as well
-	flexibility = Math.ceil(flexibility);
+		backtrackProbability = config.backtrackProbability || DEFAULT_BACKTRACK_PROB;
+		//ensure the backtrack probability passed in is in the range [0, 1]
+		if (!checkProbability(backtrackProbability)) {
+			return false;
+		}
+		justTypedRandomChar = false; //flag to indicate whether a random character
+						//(to simulate mistyping) was typed in the previous "keystroke"
 
-	var backtrackProbability = config.backtrackProbability || DEFAULT_BACKTRACK_PROB;
-	//ensure the backtrack probability passed in is in the range [0, 1]
-	if (!checkProbability(backtrackProbability)) {
-		return false;
-	}
-	var justTypedRandomChar = false; //flag to indicate whether a random character
-					//(to simulate mistyping) was typed in the previous "keystroke"
+		infinite = config.infinite;
+		loopWaitTime = config.loopWaitTime || 0;
+		if (!checkInterval(loopWaitTime, 'constructor', 'loopWaitTime')) {
+			return false;
+		}
+		loopWaitTime = Math.ceil(loopWaitTime);
+		pauseBetweenWords = config.pauseBetweenWords || 0;
+		if (!checkInterval(pauseBetweenWords, 'constructor', 'pauseBetweenWords')) {
+			return false;
+		}
+		pauseBetweenWords = Math.ceil(pauseBetweenWords);
+		backtrackDelay = config.backtrackDelay || 0;
+		if (!checkInterval(backtrackDelay, 'constructor', 'backtrackDelay')) {
+			return false;
+		}
+		backtrackDelay = Math.ceil(backtrackDelay);
 
-	var infinite = config.infinite;
-	var loopWaitTime = config.loopWaitTime || 0;
-	if (!checkInterval(loopWaitTime, 'constructor', 'loopWaitTime')) {
-		return false;
-	}
-	loopWaitTime = Math.ceil(loopWaitTime);
-	var pauseBetweenWords = config.pauseBetweenWords || 0;
-	if (!checkInterval(pauseBetweenWords, 'constructor', 'pauseBetweenWords')) {
-		return false;
-	}
-	pauseBetweenWords = Math.ceil(pauseBetweenWords);
-	var backtrackDelay = config.backtrackDelay || 0;
-	if (!checkInterval(backtrackDelay, 'constructor', 'backtrackDelay')) {
-		return false;
-	}
-	backtrackDelay = Math.ceil(backtrackDelay);
-
-	var smartBacktracking = true; //make true by default
-	if (config.smartBacktracking === false) {
-		smartBacktracking = false;
+		smartBacktracking = true; //make true by default
+		if (config.smartBacktracking === false) {
+			smartBacktracking = false;
+		}
+		//all checks passed
+		return true;
 	}
 
-	return true;
+	return setup();
+
 }
