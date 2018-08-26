@@ -102,3 +102,7 @@ writer.append({'domElement':imageDescription, 'text':This is the best image ever
 
 -If this is inserting user input into the page, guess whose job it is to make sure that input is sanitized? Your job, as usual :)
 
+
+## Tests
+To run the test suite (unit and integration tests written with Jasmine), simply clone the repository open the file `tests.html` in a browser.  
+

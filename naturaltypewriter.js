@@ -192,7 +192,7 @@ function NaturalTypewriter(config) {
 		return true;
 	}
 
-	/* If pauseBetweenWords is non-zero, this returns it.
+	/* If pauseBetweenWords is non-zero and character is whitespace, this returns it.
 	Used when flexibility != 0, i.e., the user wants the typing speed
 	to vary from character to character. A value in the range
 	[-flexibility, flexibility] is added to the object's interval attribute,
@@ -229,7 +229,7 @@ function NaturalTypewriter(config) {
 			//wait to get woken up
 			return;
 		}
-		//execute the queued function startWriting, 
+		//execute the queued function (currently bound to be startWriting), 
 		//which starts writeChar() recursion, with the stored arguments
 		writeRequest.execute(writeRequest.domElement, writeRequest.string,
 			writeRequest.startIndex, writeRequest.clearElemText, 
@@ -290,15 +290,19 @@ function NaturalTypewriter(config) {
 	/* Deletes the final numChars characters from the text of
 	domElement */
 	function deleteCharsFromElement(domElement, numChars) {
+		if (numChars <= 0) {
+			return;
+		}
+		else if (numChars >= domElement.innerHTML.length) {
+			clearElementText(domElement);
+		}
 		domElement.innerHTML = domElement.innerHTML.slice(0, numChars * -1);
 	}
 
-	/* Physically writes a character to domElement, replacing '\n' with a <br>
+	/* Physically writes a character to domElement, replacing any '\n' with a <br>
 	element. (text could also be a 2+ character string, in theory.)*/
-	function updateDomElement(domElement, text) {
-		if (text === '\n') {
-			text = '<br />';
-		}
+	function appendToDomElement(domElement, text) {
+		text = text.replace(/\n/g, '<br />');
 		domElement.innerHTML += text;
 	}
 
@@ -321,7 +325,7 @@ function NaturalTypewriter(config) {
 		//and execute any queued jobs
 		if (stopJob) {
 			stopJob = false;
-			unlock();
+			unlock(); //anything in the queue was added after killActivity was called; execute it
 			return;
 		}
 		//if all characters in string have been written
@@ -370,7 +374,7 @@ function NaturalTypewriter(config) {
 		//if we have to type a character
 		if (writeAChar) {
 			//write the current character into the domElement
-			updateDomElement(domElement, currChar);
+			appendToDomElement(domElement, currChar);
 		}
 		var timeToWait = interval;
 		if (flexibility || pauseBetweenWords) {
@@ -389,10 +393,15 @@ function NaturalTypewriter(config) {
 		//for calls to write(), clear previous text from the element
 		if (clearElemText) {
 			//clear text
-			domElement.innerHTML = '';
+			clearElementText(domElement);
 		}
 		//start writing string to domElement--initialize a recursive call chain
 		writeChar(domElement, string, startIndex, clearElemText, callback);
+	}
+
+	/* Clears the text (and other content, including nested divs) of domElement */
+	function clearElementText(domElement) {
+		domElement.innerHTML = '';
 	}
 
 	/* Begins execution of a queued write() or append() command, enforcing
@@ -403,7 +412,7 @@ function NaturalTypewriter(config) {
 		if (delay) {
 			//call execCommand() after delay milliseconds
 			setTimeout(execCommand, delay, domElement, string, startIndex,
-				clearElemText, callback)
+				clearElemText, callback);
 		}
 		else {
 			//call execCommand() immediately
@@ -533,6 +542,36 @@ function NaturalTypewriter(config) {
 		}
 		//all checks passed
 		return true;
+	}
+
+	/* Set up module for tests if applicable */
+	if (config.debug) {
+		this._clearElementText = clearElementText;
+		this._checkElement = checkElement;
+		this._checkInterval = checkInterval;
+		this._checkProbability = checkProbability;
+		this._checkText = checkText;
+		this._checkArgs = checkArgs;
+		this._lock = lock;
+		this._unlock = unlock;
+		this._decideProbability = decideProbability;
+		this._deleteCharsFromElement = deleteCharsFromElement;
+		this._appendToDomElement = appendToDomElement;
+		this._clearQueue = clearQueue;
+		this._setQueue = function(q) {
+			queue = q;
+		}
+		this._getQueue = function() {
+			return queue;
+		}
+		this._setObjectIsWriting = function(val) {
+			objectIsWriting = val;
+		}
+		this._getObjectIsWriting = function() {
+			return objectIsWriting;
+		}
+		this._startWriting = startWriting;
+		this._writeChar = writeChar;
 	}
 
 	return setup();
