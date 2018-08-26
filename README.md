@@ -104,5 +104,5 @@ writer.append({'domElement':imageDescription, 'text':This is the best image ever
 
 
 ## Tests
-To run the test suite (unit and integration tests written with Jasmine), simply clone the repository open the file `tests.html` in a browser.  
+To run the test suite (unit and integration tests written with Jasmine), simply clone the repository and open the file `tests.html` in a browser.  
 
