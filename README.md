@@ -10,14 +10,14 @@ Include in your page `<script src="naturaltypewriter.js"></script>`
 ### Constructor
 ```
 var config = {
-  'interval':70,
-  'flexibility':20,
-  'backtrackProbability':0.003,
-  'smartBacktracking':true,
-  'backtrackDelay':400,
-  'infinite':true,
-  'loopWaitTime':3000,
-  'pauseBetweenWords':0
+  interval: 70,
+  flexibility: 20,
+  backtrackProbability: 0.003,
+  smartBacktracking: true,
+  backtrackDelay: 400,
+  infinite: true,
+  loopWaitTime: 3000,
+  pauseBetweenWords: 0
 };
 var writer = new NaturalTypewriter(config);
 
@@ -38,10 +38,10 @@ Some possible starting points for these parameters are above, but I suggest play
 ### *writer*.append()
 ```
 var config = {
-	'domElement':yourElement, 
-	'text':yourText,
-	'delay':msBeforeExecution,
-	'callback':callbackFunction
+	domElement: yourElement, 
+	text: yourText,
+	delay: msBeforeExecution,
+	callback: callbackFunction
 };
 writer.append(config);
 ```
@@ -55,10 +55,10 @@ Appends `config.text` to `config.domElement`'s HTML content.
 ### *writer*.write()
 ```
 var config = {
-	'domElement':yourElement, 
-	'text':yourText,
-	'delay':msBeforeExecution,
-	'callback':callbackFunction
+	domElement: yourElement, 
+	text: yourText,
+	delay: msBeforeExecution,
+	callback: callbackFunction
 };
 writer.write(config);
 ```
@@ -78,15 +78,19 @@ Completely halts the current write/append and all pending writes/appends. They c
 
 ```
 //say we have a <p> tag `<p id="img-description"></p>`
-var writer = new NaturalTypewriter({'interval':40, 'flexibility':39, 'backtrackProbability':0.0});
+var writer = new NaturalTypewriter({
+	interval: 40,
+	flexibility: 39,
+	backtrackProbability: 0.0
+});
 
 var imageDescription = document.getElementById('img-description');
 
-writer.append({'domElement':imageDescription, 'text':This is the best image ever'});
+writer.append({domElement: imageDescription, text: 'This is the best image ever'});
 ```
 
 ## Concurrency
--If you want to have two "typewriters" running at the same time, you need to instantiate two objects.  
+-If you want to have two "typewriters" running at the same time, you need to instantiate two objects. Conversely, if you want a typewriter to type in one div, then in another after it's done with the first, good for you. All you have to do is make two function calls, one after the other, with the same typewriter object. Neat, huh?
 
 -By design a NaturalTypewriter object keeps itself from running two commands simultaneously, but it leaves your code free to run while it's at work. The former is accomplished with a locking mechanism, and for the latter you can thank timeouts--there are no infinite loops to implement pauses here. tl;dr: Informal performance analysis revealed that a long test required less than 7% of the Chrome JavaScript engine's time (the rest was spent idle). The largest contributors to running time seem to be timeouts and visual rendering, and this wouldn't work very well without pausing or writing characters, would it?
 
